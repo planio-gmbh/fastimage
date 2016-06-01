@@ -97,6 +97,12 @@ class FastImageTest < Minitest::Test
     end
   end
 
+  def test_should_raise_unknown_image_typ_when_file_is_smil_xml
+    assert_raises(FastImage::UnknownImageType) do
+      FastImage.size(FixturePath + "/test.smil", :raise_on_failure => true)
+    end
+  end
+
   def test_should_raise_unknown_image_typ_when_file_is_non_svg_xml
     assert_raises(FastImage::UnknownImageType) do
       FastImage.size(FixturePath + "/test.xml", :raise_on_failure => true)

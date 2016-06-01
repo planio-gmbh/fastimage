@@ -306,9 +306,8 @@ class FastImage
       else
         raise UnknownImageType
       end
-    when "<s"
-      :svg
-    when "<?"
+    when "<s", "<?"
+      # Does not handle UTF-16 or other multi-byte encodings
       if @stream.peek(64).include?("<svg")
         :svg
       else
