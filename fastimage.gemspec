@@ -1,30 +1,24 @@
+# coding: utf-8
+lib = File.expand_path("../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "fastimage/version"
+
 Gem::Specification.new do |s|
   s.name = %q{fastimage}
-  s.version = "2.0.0"
-
-  s.required_ruby_version = '>= 1.9.2'
-  s.authors = ["Stephen Sykes"]
-  s.date = %q{2016-03-24}
-  s.description = %q{FastImage finds the size or type of an image given its uri by fetching as little as needed.}
-  s.email = %q{sdsykes@gmail.com}
-  s.extra_rdoc_files = [
-    "README.textile"
-  ]
-  s.files = [
-    "MIT-LICENSE",
-    "README.textile",
-    "lib/fastimage.rb",
-  ]
-  s.homepage = %q{http://github.com/sdsykes/fastimage}
-  s.rdoc_options = ["--charset=UTF-8"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6}
+  s.version = FastImage::VERSION
   s.summary = %q{FastImage - Image info fast}
+  s.description = %q{FastImage finds the size or type of an image given its uri by fetching as little as needed.}
 
-  # Note rake 11 drops support for ruby 1.9.2
-  s.add_development_dependency('rake', '~> 10.5')
-  s.add_development_dependency('rdoc')
-  s.add_development_dependency('test-unit')
+  s.authors = ["Stephen Sykes"]
+  s.email = %q{sdsykes@gmail.com}
+  s.homepage = %q{http://github.com/sdsykes/fastimage}
 
-  s.licenses = ['MIT']
+  s.license = "MIT"
+
+  s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  s.require_paths = ["lib"]
+
+  s.add_development_dependency "bundler", "~> 1.12"
+  s.add_development_dependency "rake", "~> 10.0"
+  s.add_development_dependency "minitest", "~> 5.0"
 end

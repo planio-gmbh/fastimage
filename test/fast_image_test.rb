@@ -1,52 +1,48 @@
-require 'rubygems'
+require 'test_helper'
 
-require 'test/unit'
+class FastImageTest < Minitest::Test
+  FixturePath = File.join(File.dirname(__FILE__), "fixtures")
 
-PathHere = File.dirname(__FILE__)
-$LOAD_PATH.unshift File.join(PathHere, "..", "lib")
+  GoodFixtures = {
+    "test.bmp"=>[:bmp, [40, 27]],
+    "test2.bmp"=>[:bmp, [1920, 1080]],
+    "test.gif"=>[:gif, [17, 32]],
+    "test.jpg"=>[:jpeg, [882, 470]],
+    "test.png"=>[:png, [30, 20]],
+    "test2.jpg"=>[:jpeg, [250, 188]],
+    "test3.jpg"=>[:jpeg, [630, 367]],
+    "test4.jpg"=>[:jpeg, [1485, 1299]],
+    "test.tiff"=>[:tiff, [85, 67]],
+    "test2.tiff"=>[:tiff, [333, 225]],
+    "test.psd"=>[:psd, [17, 32]],
+    "exif_orientation.jpg"=>[:jpeg, [600, 450]],
+    "infinite.jpg"=>[:jpeg, [160,240]],
+    "orient_2.jpg"=>[:jpeg, [230,408]],
+    "favicon.ico" => [:ico, [16, 16]],
+    "favicon2.ico" => [:ico, [32, 32]],
+    "man.ico" => [:ico, [256, 256]],
+    "test.cur" => [:cur, [32, 32]],
+    "webp_vp8x.webp" => [:webp, [386, 395]],
+    "webp_vp8l.webp" => [:webp, [386, 395]],
+    "webp_vp8.webp" => [:webp, [550, 368]],
+    "test.svg" => [:svg, [200, 300]],
+    "test_partial_viewport.svg" => [:svg, [860, 400]]
+  }
 
-require 'fastimage'
+  BadFixtures = [
+    "faulty.jpg",
+    "test_rgb.ct",
+    "test.xml"
+  ]
+  # man.ico courtesy of http://www.iconseeker.com/search-icon/artists-valley-sample/business-man-blue.html
+  # test_rgb.ct courtesy of http://fileformats.archiveteam.org/wiki/Scitex_CT
+  # test.cur courtesy of http://mimidestino.deviantart.com/art/Clash-Of-Clans-Dragon-Cursor-s-Punteros-489070897
 
-FixturePath = File.join(PathHere, "fixtures")
+  ExifDirectories = ["jpg", "tiff-ccitt-rle", "tiff-ccitt4", "tiff-jpeg6",
+                     "tiff-jpeg7", "tiff-lzw-bw", "tiff-lzw-color",
+                     "tiff-packbits-color"]
 
-GoodFixtures = {
-  "test.bmp"=>[:bmp, [40, 27]],
-  "test2.bmp"=>[:bmp, [1920, 1080]],
-  "test.gif"=>[:gif, [17, 32]],
-  "test.jpg"=>[:jpeg, [882, 470]],
-  "test.png"=>[:png, [30, 20]],
-  "test2.jpg"=>[:jpeg, [250, 188]],
-  "test3.jpg"=>[:jpeg, [630, 367]],
-  "test4.jpg"=>[:jpeg, [1485, 1299]],
-  "test.tiff"=>[:tiff, [85, 67]],
-  "test2.tiff"=>[:tiff, [333, 225]],
-  "test.psd"=>[:psd, [17, 32]],
-  "exif_orientation.jpg"=>[:jpeg, [600, 450]],
-  "infinite.jpg"=>[:jpeg, [160,240]],
-  "orient_2.jpg"=>[:jpeg, [230,408]],
-  "favicon.ico" => [:ico, [16, 16]],
-  "favicon2.ico" => [:ico, [32, 32]],
-  "man.ico" => [:ico, [256, 256]],
-  "test.cur" => [:cur, [32, 32]],
-  "webp_vp8x.webp" => [:webp, [386, 395]],
-  "webp_vp8l.webp" => [:webp, [386, 395]],
-  "webp_vp8.webp" => [:webp, [550, 368]],
-  "test.svg" => [:svg, [200, 300]],
-  "test_partial_viewport.svg" => [:svg, [860, 400]]
-}
 
-BadFixtures = [
-  "faulty.jpg",
-  "test_rgb.ct",
-  "test.xml"
-]
-# man.ico courtesy of http://www.iconseeker.com/search-icon/artists-valley-sample/business-man-blue.html
-# test_rgb.ct courtesy of http://fileformats.archiveteam.org/wiki/Scitex_CT
-# test.cur courtesy of http://mimidestino.deviantart.com/art/Clash-Of-Clans-Dragon-Cursor-s-Punteros-489070897
-
-ExifDirectories = ["jpg", "tiff-ccitt-rle", "tiff-ccitt4", "tiff-jpeg6", "tiff-jpeg7", "tiff-lzw-bw", "tiff-lzw-color", "tiff-packbits-color"]
-
-class FastImageTest < Test::Unit::TestCase
   def test_should_report_type_correctly
     GoodFixtures.each do |fn, info|
       assert_equal info[0], FastImage.type(FixturePath + "/" + fn)
