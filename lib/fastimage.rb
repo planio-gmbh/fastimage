@@ -1,50 +1,31 @@
 # coding: ASCII-8BIT
 
-# FastImage finds the size or type of an image given its uri.
-# It is careful to only fetch and parse as much of the image as is needed to determine the result.
-# It does this by using a feature of Net::HTTP that yields strings from the resource being fetched
-# as soon as the packets arrive.
+# FastImage finds the size or type of an image given its path. FastImage knows
+# about GIF, JPEG, BMP, TIFF, ICO, CUR, PNG, PSD, SVG and WEBP files.
 #
-# No external libraries such as ImageMagick are used here, this is a very lightweight solution to
-# finding image information.
+# No external libraries such as ImageMagick are used here, this is a very
+# lightweight solution to finding image information.
 #
-# FastImage knows about GIF, JPEG, BMP, TIFF, ICO, CUR, PNG, PSD, SVG and WEBP files.
-#
-# FastImage can also read files from the local filesystem by supplying the path instead of a uri.
-# In this case FastImage reads the file in chunks of 256 bytes until
-# it has enough. This is possibly a useful bandwidth-saving feature if the file is on a network
+# FastImage reads the file in chunks of 256 bytes until it has enough. This is
+# possibly a useful bandwidth-saving feature if the file is on a network
 # attached disk rather than truly local.
 #
 # FastImage will automatically read from any object that responds to :read - for
-# instance an IO object if that is passed instead of a URI.
+# instance an IO object if that is passed instead of a path.
 #
-# FastImage will follow up to 4 HTTP redirects to get the image.
-#
-# FastImage also provides a reader for the content length header provided in HTTP.
-# This may be useful to assess the file size of an image, but do not rely on it exclusively -
-# it will not be present in chunked responses for instance.
-#
-# FastImage accepts additional HTTP headers. This can be used to set a user agent
-# or referrer which some servers require. Pass an :http_header argument to specify headers,
-# e.g., :http_header => {'User-Agent' => 'Fake Browser'}.
-#
-# FastImage can give you information about the parsed display orientation of an image with Exif 
+# FastImage can give you information about the parsed display orientation of an image with Exif
 # data (jpeg or tiff).
 #
 # === Examples
 #   require 'fastimage'
 #
-#   FastImage.size("http://stephensykes.com/images/ss.com_x.gif")
+#   FastImage.size("image.gif")
 #   => [266, 56]
-#   FastImage.type("http://stephensykes.com/images/pngimage")
+#   FastImage.type("/some/local/file.png")
 #   => :png
-#   FastImage.type("/some/local/file.gif")
-#   => :gif
 #   File.open("/some/local/file.gif", "r") {|io| FastImage.type(io)}
 #   => :gif
-#   FastImage.new("http://stephensykes.com/images/pngimage").content_length
-#   => 432
-#   FastImage.new("http://stephensykes.com/images/ExifOrientation3.jpg").orientation
+#   FastImage.new("ExifOrientation3.jpg").orientation
 #   => 3
 #
 # === References
@@ -54,14 +35,12 @@
 # * https://github.com/remvee/exifr
 #
 
-require 'net/https'
-require 'addressable/uri'
 require 'delegate'
 require 'pathname'
-require 'zlib'
+require 'stringio'
 
 class FastImage
-  attr_reader :size, :type, :content_length, :orientation
+  attr_reader :size, :type, :orientation
 
   attr_reader :bytes_read
 
@@ -76,84 +55,65 @@ class FastImage
   class CannotParseImage < FastImageException # :nodoc:
   end
 
-  DefaultTimeout = 2 unless const_defined?(:DefaultTimeout)
-
   LocalFileChunkSize = 256 unless const_defined?(:LocalFileChunkSize)
 
-  # Returns an array containing the width and height of the image.
-  # It will return nil if the image could not be fetched, or if the image type was not recognised.
+  # Returns an array containing the width and height of the image.  It will
+  # return nil if the image could not be fetched, or if the image type was not
+  # recognised.
   #
-  # By default there is a timeout of 2 seconds for opening and reading from a remote server.
-  # This can be changed by passing a :timeout => number_of_seconds in the options.
+  # If you wish FastImage to raise if it cannot size the image for any reason,
+  # then pass :raise_on_failure => true in the options.
   #
-  # If you wish FastImage to raise if it cannot size the image for any reason, then pass
-  # :raise_on_failure => true in the options.
-  #
-  # FastImage knows about GIF, JPEG, BMP, TIFF, ICO, CUR, PNG, PSD, SVG and WEBP files.
+  # FastImage knows about GIF, JPEG, BMP, TIFF, ICO, CUR, PNG, PSD, SVG and WEBP
+  # files.
   #
   # === Example
   #
   #   require 'fastimage'
   #
-  #   FastImage.size("http://stephensykes.com/images/ss.com_x.gif")
+  #   FastImage.size("example.gif")
   #   => [266, 56]
-  #   FastImage.size("http://stephensykes.com/images/pngimage")
-  #   => [16, 16]
-  #   FastImage.size("http://farm4.static.flickr.com/3023/3047236863_9dce98b836.jpg")
-  #   => [500, 375]
-  #   FastImage.size("http://www-ece.rice.edu/~wakin/images/lena512.bmp")
-  #   => [512, 512]
-  #   FastImage.size("test/fixtures/test.jpg")
-  #   => [882, 470]
-  #   FastImage.size("http://pennysmalls.com/does_not_exist")
+  #   FastImage.size("does_not_exist")
   #   => nil
-  #   FastImage.size("http://pennysmalls.com/does_not_exist", :raise_on_failure=>true)
+  #   FastImage.size("does_not_exist", :raise_on_failure => true)
   #   => raises FastImage::ImageFetchFailure
-  #   FastImage.size("http://stephensykes.com/favicon.ico", :raise_on_failure=>true)
+  #   FastImage.size("example.png", :raise_on_failure => true)
   #   => [16, 16]
-  #   FastImage.size("http://stephensykes.com/images/squareBlue.icns", :raise_on_failure=>true)
+  #   FastImage.size("app.icns", :raise_on_failure=>true)
   #   => raises FastImage::UnknownImageType
-  #   FastImage.size("http://stephensykes.com/favicon.ico", :raise_on_failure=>true, :timeout=>0.01)
-  #   => raises FastImage::ImageFetchFailure
-  #   FastImage.size("http://stephensykes.com/images/faulty.jpg", :raise_on_failure=>true)
+  #   FastImage.size("faulty.jpg", :raise_on_failure=>true)
   #   => raises FastImage::SizeNotFound
   #
   # === Supported options
-  # [:timeout]
-  #   Overrides the default timeout of 2 seconds.  Applies both to reading from and opening the http connection.
   # [:raise_on_failure]
   #   If set to true causes an exception to be raised if the image size cannot be found for any reason.
   #
-  def self.size(uri, options={})
-    new(uri, options).size
+  def self.size(source, options={})
+    new(source, options).size
   end
 
-  # Returns an symbol indicating the image type fetched from a uri.
-  # It will return nil if the image could not be fetched, or if the image type was not recognised.
+  # Returns an symbol indicating the image type located at source.  It will
+  # return nil if the image could not be fetched, or if the image type was not
+  # recognised.
   #
-  # By default there is a timeout of 2 seconds for opening and reading from a remote server.
-  # This can be changed by passing a :timeout => number_of_seconds in the options.
-  #
-  # If you wish FastImage to raise if it cannot find the type of the image for any reason, then pass
-  # :raise_on_failure => true in the options.
+  # If you wish FastImage to raise if it cannot find the type of the image for
+  # any reason, then pass :raise_on_failure => true in the options.
   #
   # === Example
   #
   #   require 'fastimage'
   #
-  #   FastImage.type("http://stephensykes.com/images/ss.com_x.gif")
+  #   FastImage.type("example.gif")
   #   => :gif
-  #   FastImage.type("http://stephensykes.com/images/pngimage")
+  #   FastImage.type("image.png")
   #   => :png
-  #   FastImage.type("http://farm4.static.flickr.com/3023/3047236863_9dce98b836.jpg")
+  #   FastImage.type("photo.jpg")
   #   => :jpeg
-  #   FastImage.type("http://www-ece.rice.edu/~wakin/images/lena512.bmp")
+  #   FastImage.type("lena512.bmp")
   #   => :bmp
-  #   FastImage.type("test/fixtures/test.jpg")
-  #   => :jpeg
-  #   FastImage.type("http://stephensykes.com/does_not_exist")
+  #   FastImage.type("does_not_exist")
   #   => nil
-  #   File.open("/some/local/file.gif", "r") {|io| FastImage.type(io)}
+  #   File.open("file.gif", "r") {|io| FastImage.type(io)}
   #   => :gif
   #   FastImage.type("test/fixtures/test.tiff")
   #   => :tiff
@@ -161,20 +121,17 @@ class FastImage
   #   => :psd
   #
   # === Supported options
-  # [:timeout]
-  #   Overrides the default timeout of 2 seconds.  Applies both to reading from and opening the http connection.
   # [:raise_on_failure]
   #   If set to true causes an exception to be raised if the image type cannot be found for any reason.
   #
-  def self.type(uri, options={})
-    new(uri, options.merge(:type_only=>true)).type
+  def self.type(source, options={})
+    new(source, options.merge(:type_only=>true)).type
   end
 
-  def initialize(uri, options={})
-    @uri = uri
+  def initialize(source, options={})
+    @source = source
     @options = {
       :type_only        => false,
-      :timeout          => DefaultTimeout,
       :raise_on_failure => false,
       :proxy            => nil,
       :http_header      => {}
@@ -182,28 +139,15 @@ class FastImage
 
     @property = @options[:type_only] ? :type : :size
 
-    if uri.respond_to?(:read)
-      fetch_using_read(uri)
+    if @source.respond_to?(:read)
+      fetch_using_read
     else
-      begin
-        @parsed_uri = Addressable::URI.parse(uri)
-      rescue Addressable::URI::InvalidURIError
-        fetch_using_file_open
-      else
-        if @parsed_uri.scheme == "http" || @parsed_uri.scheme == "https"
-          fetch_using_http
-        else
-          fetch_using_file_open
-        end
-      end
+      fetch_using_file_open
     end
 
     raise SizeNotFound if @options[:raise_on_failure] && @property == :size && !@size
 
-  rescue Timeout::Error, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ECONNRESET,
-    ImageFetchFailure, Net::HTTPBadResponse, EOFError, Errno::ENOENT
-    raise ImageFetchFailure if @options[:raise_on_failure]
-  rescue NoMethodError  # 1.8.7p248 can raise this due to a net/http bug
+  rescue ImageFetchFailure, EOFError, Errno::ENOENT
     raise ImageFetchFailure if @options[:raise_on_failure]
   rescue UnknownImageType
     raise UnknownImageType if @options[:raise_on_failure]
@@ -217,99 +161,12 @@ class FastImage
     end
 
   ensure
-    uri.rewind if uri.respond_to?(:rewind)
-
+    source.rewind if source.respond_to?(:rewind)
   end
 
   private
 
-  def fetch_using_http
-    @redirect_count = 0
-
-    fetch_using_http_from_parsed_uri
-  end
-
-  def fetch_using_http_from_parsed_uri
-    http_header = {'Accept-Encoding' => 'identity'}.merge(@options[:http_header])
-
-    setup_http
-    @http.request_get(@parsed_uri.request_uri, http_header) do |res|
-      if res.is_a?(Net::HTTPRedirection) && @redirect_count < 4
-        @redirect_count += 1
-        begin
-          newly_parsed_uri = Addressable::URI.parse(res['Location'])
-          # The new location may be relative - check for that
-          if newly_parsed_uri.scheme != "http" && newly_parsed_uri.scheme != "https"
-            @parsed_uri.path = res['Location']
-          else
-            @parsed_uri = newly_parsed_uri
-          end
-        rescue Addressable::URI::InvalidURIError
-        else
-          fetch_using_http_from_parsed_uri
-          break
-        end
-      end
-
-      raise ImageFetchFailure unless res.is_a?(Net::HTTPSuccess)
-
-      @content_length = res.content_length
-
-      read_fiber = Fiber.new do
-        res.read_body do |str|
-          Fiber.yield str
-        end
-      end
-
-      case res['content-encoding']
-      when 'deflate', 'gzip', 'x-gzip'
-        begin
-          gzip = Zlib::GzipReader.new(FiberStream.new(read_fiber))
-        rescue FiberError, Zlib::GzipFile::Error
-          raise CannotParseImage
-        end
-
-        read_fiber = Fiber.new do
-          while data = gzip.readline
-            Fiber.yield data
-          end
-        end
-      end
-
-      parse_packets FiberStream.new(read_fiber)
-
-      break  # needed to actively quit out of the fetch
-    end
-  end
-
-  def proxy_uri
-    begin
-      if @options[:proxy]
-        proxy = Addressable::URI.parse(@options[:proxy])
-      else
-        proxy = ENV['http_proxy'] && ENV['http_proxy'] != "" ? Addressable::URI.parse(ENV['http_proxy']) : nil
-      end
-    rescue Addressable::URI::InvalidURIError
-      proxy = nil
-    end
-    proxy
-  end
-
-  def setup_http
-    proxy = proxy_uri
-
-    if proxy
-      @http = Net::HTTP::Proxy(proxy.host, proxy.port).new(@parsed_uri.host, @parsed_uri.inferred_port)
-    else
-      @http = Net::HTTP.new(@parsed_uri.host, @parsed_uri.inferred_port)
-    end
-    @http.use_ssl = (@parsed_uri.scheme == "https")
-    @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    @http.open_timeout = @options[:timeout]
-    @http.read_timeout = @options[:timeout]
-  end
-
-  def fetch_using_read(readable)
+  def fetch_using_read(readable = @source)
     # Pathnames respond to read, but always return the first
     # chunk of the file unlike an IO (even though the
     # docuementation for it refers to IO). Need to supply
@@ -334,8 +191,8 @@ class FastImage
   end
 
   def fetch_using_file_open
-    File.open(@uri) do |s|
-      fetch_using_read(s)
+    File.open(@source) do |file|
+      fetch_using_read(file)
     end
   end
 
@@ -351,7 +208,7 @@ class FastImage
         else
           @orientation = 1
         end
-        
+
         instance_variable_set("@#{@property}", result)
       else
         raise CannotParseImage
@@ -408,7 +265,7 @@ class FastImage
         @strpos = 0
       end
 
-      result = @str[@strpos..(@strpos + n - 1)]
+      @str[@strpos..(@strpos + n - 1)]
     end
 
     def read(n)
@@ -452,7 +309,7 @@ class FastImage
     when "<s"
       :svg
     when "<?"
-      if @stream.peek(100).include?("<svg")
+      if @stream.peek(64).include?("<svg")
         :svg
       else
         raise UnknownImageType
@@ -510,7 +367,7 @@ class FastImage
         @stream.read(skip_chars)
         :started
       when :readsize
-        s = @stream.read(3)
+        @stream.read(3)
         height = @stream.read_int
         width = @stream.read_int
         width, height = height, width if @exif && @exif.rotated?
@@ -535,7 +392,7 @@ class FastImage
 
   def parse_size_for_webp
     vp8 = @stream.read(16)[12..15]
-    len = @stream.read(4).unpack("V")
+    @stream.read(4).unpack("V") # len
     case vp8
     when "VP8 "
       parse_size_vp8
@@ -630,7 +487,7 @@ class FastImage
       @stream.read(offset - 8)
 
       parse_exif_ifd
-      
+
       @orientation ||= 1
     end
 

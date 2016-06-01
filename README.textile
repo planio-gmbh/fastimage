@@ -3,6 +3,9 @@
 
 h1. FastImage
 
+> This fork of the FastImage Gem removes remote URL support to avoid a whole
+> class of security-related problems.
+
 h4. FastImage finds the size or type of an image given its uri by fetching as little as needed
 
 h2. The problem
