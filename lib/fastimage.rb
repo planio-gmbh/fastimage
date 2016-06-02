@@ -40,7 +40,7 @@ require 'pathname'
 require 'stringio'
 
 class FastImage
-  attr_reader :size, :type, :orientation
+  attr_reader :size, :type, :orientation, :source, :path
 
   attr_reader :bytes_read
 
@@ -140,8 +140,10 @@ class FastImage
     @property = @options[:type_only] ? :type : :size
 
     if @source.respond_to?(:read)
+      @path = @source.path if @source.respond_to? :path
       fetch_using_read
     else
+      @path = @source
       fetch_using_file_open
     end
 
