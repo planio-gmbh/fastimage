@@ -20,7 +20,7 @@ And then execute:
     $ bundle
 
 
-If you are using Bundler's autorequire, your good to go. Otherwise make sure to
+If you are using Bundler's autorequire, you're good to go. Otherwise make sure to
 `require "fastimage"`.
 
 Or install it yourself as:
@@ -34,7 +34,7 @@ Again, make sure to `require "fastimage"`.
 ## Usage
 
 See [README.textile](README.textile) for more documentation. Everything should
-work as advertised, expect for remote images of course.
+work as advertised, except for remote images of course.
 
 
 
