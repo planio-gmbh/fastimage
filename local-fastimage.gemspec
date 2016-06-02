@@ -6,12 +6,12 @@ require "fastimage/version"
 Gem::Specification.new do |s|
   s.name = %q{local-fastimage}
   s.version = FastImage::VERSION
-  s.summary = %q{FastImage - Image info fast}
-  s.description = %q{FastImage finds the size or type of an image given its uri by fetching as little as needed.}
+  s.authors = ["Stephen Sykes", "Gregor Schmidt (Planio)"]
+  s.email = ["sdsykes@gmail.com", "gregor@plan.io", "support@plan.io"]
 
-  s.authors = ["Stephen Sykes"]
-  s.email = %q{sdsykes@gmail.com}
-  s.homepage = %q{http://github.com/sdsykes/fastimage}
+  s.summary = "Local FastImage - Image info fast"
+  s.description = "Local FastImage finds the size or type of an image given its uri by fetching as little as needed."
+  s.homepage = "https://github.com/planio-gmbh/local-fastimage"
 
   s.license = "MIT"
 
