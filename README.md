@@ -7,6 +7,8 @@ It features the following differences:
 * Removal of all remote image handling code
 * Minor changes to code organization
 
+[![Build Status](https://travis-ci.org/planio-gmbh/local-fastimage.svg?branch=master)](https://travis-ci.org/planio-gmbh/local-fastimage)
+
 ## Installation
 
 Add this line to your application's Gemfile:
