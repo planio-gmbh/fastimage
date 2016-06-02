@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "fastimage/version"
 
 Gem::Specification.new do |s|
-  s.name = %q{fastimage}
+  s.name = %q{local-fastimage}
   s.version = FastImage::VERSION
   s.summary = %q{FastImage - Image info fast}
   s.description = %q{FastImage finds the size or type of an image given its uri by fetching as little as needed.}
