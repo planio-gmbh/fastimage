@@ -301,7 +301,7 @@ class FastImage
   end
 
   def parse_type
-    case @stream.peek(2)
+    parsed_type = case @stream.peek(2)
     when "BM"
       :bmp
     when "GI"
@@ -321,21 +321,13 @@ class FastImage
       when 2 then :cur
       end
     when "RI"
-      if @stream.peek(12)[8..11] == "WEBP"
-        :webp
-      else
-        raise UnknownImageType
-      end
+      :webp if @stream.peek(12)[8..11] == "WEBP"
     when "<s", "<?"
       # Does not handle UTF-16 or other multi-byte encodings
-      if @stream.peek(64).include?("<svg")
-        :svg
-      else
-        raise UnknownImageType
-      end
-    else
-      raise UnknownImageType
+      :svg if @stream.peek(64).include?("<svg")
     end
+        
+    parsed_type or raise UnknownImageType
   end
 
   def parse_size_for_ico
