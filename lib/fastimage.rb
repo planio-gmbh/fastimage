@@ -301,7 +301,7 @@ class FastImage
   end
 
   def parse_type
-    type = case @stream.peek(2)
+    parsed_type = case @stream.peek(2)
     when "BM"
       :bmp
     when "GI"
@@ -327,7 +327,7 @@ class FastImage
       :svg if @stream.peek(64).include?("<svg")
     end
         
-    type or raise UnknownImageType
+    parsed_type or raise UnknownImageType
   end
 
   def parse_size_for_ico
