@@ -327,7 +327,7 @@ class FastImage
       :svg if @stream.peek(64).include?("<svg")
     end
         
-    type || raise UnknownImageType
+    type or raise UnknownImageType
   end
 
   def parse_size_for_ico
