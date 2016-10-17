@@ -224,4 +224,11 @@ class FastImageTest < Minitest::Test
     url = "#{FixturePath}/test.gif"
     assert_equal 1, FastImage.new(url).orientation
   end
+
+  def test_should_raise_when_handling_files_looking_like_icons
+    stringio = StringIO.new("\x00\x00003")
+    assert_raises(FastImage::UnknownImageType) do
+      FastImage.type(stringio, :raise_on_failure => true)
+    end
+  end
 end
