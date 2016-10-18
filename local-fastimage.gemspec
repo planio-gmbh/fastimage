@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email = ["sdsykes@gmail.com", "gregor@plan.io", "support@plan.io"]
 
   s.summary = "Local FastImage - Image info fast"
-  s.description = "Local FastImage finds the size or type of an image given its uri by fetching as little as needed."
+  s.description = "Local FastImage finds the size or type of an image reading as little bytes as needed."
   s.homepage = "https://github.com/planio-gmbh/local-fastimage"
 
   s.license = "MIT"
