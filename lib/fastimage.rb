@@ -38,6 +38,7 @@
 require 'delegate'
 require 'pathname'
 require 'stringio'
+require 'fiber'
 
 class FastImage
   attr_reader :size, :type, :orientation, :source, :path
@@ -254,6 +255,7 @@ class FastImage
       @str = ''
     end
 
+    # Peeking beyond the end of the input will raise
     def peek(n)
       while @strpos + n - 1 >= @str.size
         unused_str = @str[@strpos..-1]
@@ -323,10 +325,16 @@ class FastImage
     when "RI"
       :webp if @stream.peek(12)[8..11] == "WEBP"
     when "<s", "<?"
-      # Does not handle UTF-16 or other multi-byte encodings
-      :svg if @stream.peek(64).include?("<svg")
+      # Peek 10 more chars each time, and if end of file is reached just raise
+      # unknown. We assume the <svg tag cannot be within 10 chars of the end of
+      # the file, and is within the first 250 chars.
+      begin
+        :svg if (1..25).detect {|n| @stream.peek(10 * n).include?("<svg")}
+      rescue FiberError, CannotParseImage
+        nil
+      end
     end
-        
+
     parsed_type or raise UnknownImageType
   end
 
@@ -560,10 +568,12 @@ class FastImage
           end
         when /\w/
           attr_name << char
+        when "<"
+          attr_name = [char]
         when ">"
           state = :stop if state == :started
         else
-          state = :started if attr_name.join == "svg"
+          state = :started if attr_name.join == "<svg"
           attr_name.clear
         end
       end
