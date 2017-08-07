@@ -30,7 +30,8 @@ class FastImageTest < Minitest::Test
     "test.svg" => [:svg, [200, 300]],
     "test_partial_viewport.svg" => [:svg, [860, 400]],
     "test2.svg" => [:svg, [366, 271]],
-    "test3.svg" => [:svg, [255, 48]]
+    "test3.svg" => [:svg, [255, 48]],
+    "test4.svg" => [:svg, [271, 271]]
   }
 
   BadFixtures = [
