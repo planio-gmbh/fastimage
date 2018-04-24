@@ -139,6 +139,8 @@ class FastImage
 
     @property = @options[:type_only] ? :type : :size
 
+    @type, @state = nil
+
     if @source.respond_to?(:read)
       @path = @source.path if @source.respond_to? :path
       fetch_using_read
@@ -353,6 +355,7 @@ class FastImage
   end
 
   def parse_size_for_jpeg
+    exif = nil
     loop do
       @state = case @state
       when nil
@@ -368,7 +371,7 @@ class FastImage
           io = StringIO.new(data)
           if io.read(4) == "Exif"
             io.read(2)
-            @exif = Exif.new(IOStream.new(io)) rescue nil
+            exif = Exif.new(IOStream.new(io)) rescue nil
           end
           :started
         when 0xe0..0xef
@@ -388,8 +391,8 @@ class FastImage
         @stream.skip(3)
         height = @stream.read_int
         width = @stream.read_int
-        width, height = height, width if @exif && @exif.rotated?
-        return [width, height, @exif ? @exif.orientation : 1]
+        width, height = height, width if exif && exif.rotated?
+        return [width, height, exif ? exif.orientation : 1]
       end
     end
   end
@@ -452,6 +455,7 @@ class FastImage
 
     def initialize(stream)
       @stream = stream
+      @width, @height, @orientation = nil
       parse_exif
     end
 
@@ -531,6 +535,7 @@ class FastImage
   class Svg # :nodoc:
     def initialize(stream)
       @stream = stream
+      @width, @height, @ratio, @viewbox_width, @viewbox_height = nil
       parse_svg
     end
 
