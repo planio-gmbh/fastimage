@@ -541,6 +541,10 @@ class FastImage
         [@width, @width / @ratio]
       elsif @height && @ratio
         [@height * @ratio, @height]
+      elsif @viewbox_width && @viewbox_height
+        [@viewbox_width, @viewbox_height]
+      else
+        nil
       end
     end
 
@@ -563,7 +567,11 @@ class FastImage
             return if @width
           elsif attr_name.join =~ /viewbox/i
             values = attr_value.split(/\s/)
-            @ratio = values[2].to_f / values[3].to_f
+            if values[2].to_f > 0 && values[3].to_f > 0
+              @ratio = values[2].to_f / values[3].to_f
+              @viewbox_width = values[2].to_i
+              @viewbox_height = values[3].to_i
+            end
           end
         when /\w/
           attr_name << char
