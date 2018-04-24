@@ -38,7 +38,6 @@
 require 'delegate'
 require 'pathname'
 require 'stringio'
-require 'fiber'
 
 class FastImage
   attr_reader :size, :type, :orientation, :source, :path
