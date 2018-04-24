@@ -1,3 +1,9 @@
+# 3.1.0 - 2018-04-24
+
+Updates code to match fastimage v2.1.1
+
+* improved SVG support
+
 # 3.0.2 - 2016-10-17
 
 Fixes a bug,
