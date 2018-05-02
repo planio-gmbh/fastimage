@@ -1,3 +1,9 @@
+# 3.1.1 - 2018-05-02
+
+Bug fix
+
+* Fix orientation for certain JPEG images
+
 # 3.1.0 - 2018-04-24
 
 Updates code to match fastimage v2.1.1
