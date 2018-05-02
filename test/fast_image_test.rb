@@ -6,33 +6,42 @@ class FastImageTest < Minitest::Test
   FixturePath = File.join(File.dirname(__FILE__), "fixtures")
 
   GoodFixtures = {
-    "test.bmp"=>[:bmp, [40, 27]],
-    "test2.bmp"=>[:bmp, [1920, 1080]],
-    "test.gif"=>[:gif, [17, 32]],
-    "test.jpg"=>[:jpeg, [882, 470]],
-    "test.png"=>[:png, [30, 20]],
-    "test2.jpg"=>[:jpeg, [250, 188]],
-    "test3.jpg"=>[:jpeg, [630, 367]],
-    "test4.jpg"=>[:jpeg, [1485, 1299]],
-    "test.tiff"=>[:tiff, [85, 67]],
-    "test2.tiff"=>[:tiff, [333, 225]],
-    "test.psd"=>[:psd, [17, 32]],
-    "exif_orientation.jpg"=>[:jpeg, [600, 450]],
-    "orient_2.jpg"=>[:jpeg, [230,408]],
-    "orient_6.jpg" => [:jpeg, [1250, 2500]],
-    "infinite.jpg" => [:jpeg, [160,240]],
-    "favicon.ico" => [:ico, [16, 16]],
-    "favicon2.ico" => [:ico, [32, 32]],
-    "man.ico" => [:ico, [256, 256]],
-    "test.cur" => [:cur, [32, 32]],
-    "webp_vp8x.webp" => [:webp, [386, 395]],
-    "webp_vp8l.webp" => [:webp, [386, 395]],
-    "webp_vp8.webp" => [:webp, [550, 368]],
-    "test.svg" => [:svg, [200, 300]],
+    "test.bmp"                  => [:bmp, [40, 27]],
+    "test2.bmp"                 => [:bmp, [1920, 1080]],
+
+    "test.cur"                  => [:cur, [32, 32]],
+
+    "test.gif"                  => [:gif, [17, 32]],
+
+    "favicon.ico"               => [:ico, [16, 16]],
+    "favicon2.ico"              => [:ico, [32, 32]],
+    "man.ico"                   => [:ico, [256, 256]],
+
+    "exif_orientation.jpg"      => [:jpeg, [600, 450]],
+    "infinite.jpg"              => [:jpeg, [160,240]],
+    "orient_2.jpg"              => [:jpeg, [230,408]],
+    "orient_6.jpg"              => [:jpeg, [1250, 2500]],
+    "test.jpg"                  => [:jpeg, [882, 470]],
+    "test2.jpg"                 => [:jpeg, [250, 188]],
+    "test3.jpg"                 => [:jpeg, [630, 367]],
+    "test4.jpg"                 => [:jpeg, [1485, 1299]],
+
+    "test.png"                  => [:png, [30, 20]],
+
+    "test.psd"                  => [:psd, [17, 32]],
+
+    "webp_vp8.webp"             => [:webp, [550, 368]],
+    "webp_vp8l.webp"            => [:webp, [386, 395]],
+    "webp_vp8x.webp"            => [:webp, [386, 395]],
+
+    "test.svg"                  => [:svg, [200, 300]],
+    "test2.svg"                 => [:svg, [366, 271]],
+    "test3.svg"                 => [:svg, [255, 48]],
+    "test4.svg"                 => [:svg, [271, 271]],
     "test_partial_viewport.svg" => [:svg, [860, 400]],
-    "test2.svg" => [:svg, [366, 271]],
-    "test3.svg" => [:svg, [255, 48]],
-    "test4.svg" => [:svg, [271, 271]]
+
+    "test.tiff"                 => [:tiff, [85, 67]],
+    "test2.tiff"                => [:tiff, [333, 225]]
   }
 
   BadFixtures = [
