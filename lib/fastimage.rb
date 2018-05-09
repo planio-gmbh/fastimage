@@ -152,7 +152,7 @@ class FastImage
 
     raise SizeNotFound if @options[:raise_on_failure] && @property == :size && !@size
 
-  rescue ImageFetchFailure, EOFError, Errno::ENOENT
+  rescue ImageFetchFailure, EOFError, Errno::ENOENT, Errno::EISDIR
     raise ImageFetchFailure if @options[:raise_on_failure]
   rescue UnknownImageType
     raise UnknownImageType if @options[:raise_on_failure]

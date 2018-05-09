@@ -72,6 +72,10 @@ class FastImageTest < Minitest::Test
     end
   end
 
+  def test_should_return_nil_on_directories
+    assert_nil FastImage.size(FixturePath)
+  end
+
   def test_should_return_nil_on_fetch_failure
     assert_nil FastImage.size(FixturePath + "/" + "does_not_exist")
   end
