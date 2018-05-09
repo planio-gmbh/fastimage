@@ -1,3 +1,10 @@
+# 3.1.2 - 2018-05-09
+
+Bug fix
+
+* Handle directories gracefully, i.e. the same way as we're dealing with missing
+  files.
+
 # 3.1.1 - 2018-05-02
 
 Bug fix
