@@ -47,7 +47,9 @@ class FastImageTest < Minitest::Test
   BadFixtures = [
     "faulty.jpg",
     "test_rgb.ct",
-    "test.xml"
+    "test.xml",
+    "a.CR2",
+    "a.CRW"
   ]
   # man.ico courtesy of http://www.iconseeker.com/search-icon/artists-valley-sample/business-man-blue.html
   # test_rgb.ct courtesy of http://fileformats.archiveteam.org/wiki/Scitex_CT
@@ -255,6 +257,15 @@ class FastImageTest < Minitest::Test
     stringio = StringIO.new("\x00\x00003")
     assert_raises(FastImage::UnknownImageType) do
       FastImage.type(stringio, :raise_on_failure => true)
+    end
+  end
+
+  def test_canon_raw_formats_are_not_recognised_as_tiff
+    assert_raises(FastImage::UnknownImageType) do
+      FastImage.size(FixturePath + "/" + "a.CR2", :raise_on_failure => true)
+    end
+    assert_raises(FastImage::UnknownImageType) do
+      FastImage.size(FixturePath + "/" + "a.CRW", :raise_on_failure => true)
     end
   end
 end
