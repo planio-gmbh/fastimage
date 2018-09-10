@@ -1,3 +1,9 @@
+# 3.1.3 - 2018-09-10
+
+Bug fix
+
+* Don't treat CR2 and CRW as TIFF - https://github.com/sdsykes/fastimage/issues/104
+
 # 3.1.2 - 2018-05-09
 
 Bug fix
